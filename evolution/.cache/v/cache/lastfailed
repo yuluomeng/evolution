@@ -1,4 +1,0 @@
-{
-  "server/tests/test_player.py::test_cards_played_in_actions_invalid_card_indices": true,
-  "server/tests/test_player_proxy.py::test_deserialize_action4": true
-}
