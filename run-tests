@@ -1,0 +1,5 @@
+#!/bin/sh
+virtualenv -p python3 cs4500-meow
+. cs4500-meow/bin/activate
+pip install pytest
+py.test gui/

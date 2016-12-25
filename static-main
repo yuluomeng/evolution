@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+
+import sys
+
+from evolution.client.dealer_proxy import StaticDealerProxy
+from evolution.server.dealer import Dealer
+from evolution.server.player import Player
+from evolution.server.player_proxy import StaticPlayerProxy
+
+MIN_STARTING_PLAYERS = 3
+MAX_STARTING_PLAYERS = 8
+
+
+def main():
+
+    num_players = int(sys.argv[1])
+
+    if not (MIN_STARTING_PLAYERS <= num_players <= MAX_STARTING_PLAYERS):
+        raise ValueError('Invalid number of players')
+
+    players = [
+        Player(
+            id=i+1,
+            proxy=StaticPlayerProxy(external=StaticDealerProxy()))
+        for i in range(num_players)
+    ]
+    final_scores = Dealer(players=players).run_game()
+
+    for i, (player_id, score) in enumerate(final_scores):
+        print('{} player id: {} score: {}'.format(i+1, player_id, score))
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+import sys
+import socket
+
+from evolution.core.connection import read_msg, send_msg
+from evolution.server.dealer import Dealer
+from evolution.server.player import Player
+from evolution.server.player_proxy import RemotePlayerProxy
+
+
+PLAYER_SIGNUP_DURATION = 5  # seconds
+MIN_STARTING_PLAYERS = 3
+MAX_STARTING_PLAYERS = 8
+
+
+def create_socket(host, port):
+    """Creates a socket at the given server and port
+
+    :param host: server for socket
+    :type host: str
+
+    :param port: the port for the socket
+    :type port: int
+
+    :returns: the created socket
+    :rtype: socket.socket
+    """
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind((host, port))
+    sock.listen(5)
+    sock.settimeout(PLAYER_SIGNUP_DURATION)
+
+    return sock
+
+
+def main():
+    try:
+        host, port = sys.argv[1], int(sys.argv[2])
+        sock = create_socket(host, port)
+
+        players = []
+        while len(players) < MAX_STARTING_PLAYERS:
+            try:
+                conn, _ = sock.accept()
+                signup_msg = read_msg(conn)
+                send_msg('ok', conn)
+
+                proxy = RemotePlayerProxy(conn)
+                player_id = (len(players)+1, signup_msg)
+                players.append(Player(id=player_id, proxy=proxy))
+            except socket.error:
+                break
+
+        if len(players) >= MIN_STARTING_PLAYERS:
+            final_scores = Dealer(players=players).run_game()
+
+            for i, (player_id, score) in enumerate(final_scores):
+                print('{} player id: {} score: {}'.format(i+1, player_id[1], score))
+    except:
+        raise
+
+
+if __name__ == '__main__':
+    main()

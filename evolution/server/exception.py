@@ -1,0 +1,2 @@
+class CheatingPlayerException(Exception):
+    pass
